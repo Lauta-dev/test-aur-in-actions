@@ -57,7 +57,8 @@ jobs:
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/test-aur-${{ github.run_number }}/test.txt"
           sed -i "s|PKGVER|1|" PKGBUILD
           sed -i "s|PKGURL|${{ env.pkgurl }}|" PKGBUILD
-          sed -i "s|KERNEL_URL|$RELEASE_URL|" PKGBUILD
+          sed -i "s|KERNEL_URL|$RELEASE_URL|g" PKGBUILD
+          cat PKGBUILD
 
       - name: config aur
         run: |
