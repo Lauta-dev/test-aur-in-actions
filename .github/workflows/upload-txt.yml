@@ -49,7 +49,7 @@ jobs:
 
       - name: 2 - Create user
         run: |
-          useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          useradd user -m -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
       - name: Set val in PKGBUILD
         run: |
