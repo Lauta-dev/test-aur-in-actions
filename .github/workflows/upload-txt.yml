@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: 1 - Install git base-devel and sudo
-        run: pacman -Syu --noconfirm git base-devel sudo pacman-contrib
+        run: pacman -Syu --noconfirm git base-devel sudo pacman-contrib openssh
 
       - name: Checkout linux-tkg
         uses: actions/checkout@v4
