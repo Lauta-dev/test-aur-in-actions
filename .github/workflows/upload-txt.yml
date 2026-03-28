@@ -80,7 +80,6 @@ jobs:
 
           # 2. Todo el bloque de comandos ejecutado por 'user'
           su - user <<'EOF'
-            cp /__w/test-aur-in-actions/test-aur-in-actions/* .
 
             mkdir -p ~/.ssh
             echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -91,8 +90,8 @@ jobs:
             git config --global user.email "${{secrets.MAIL}}"
             # Ahora estamos dentro del contexto de 'user'
             git clone ssh://aur@aur.archlinux.org/test.git
-            cp /github/workspace/PKGBUILD test/
             cd test
+            cp /__w/test-aur-in-actions/test-aur-in-actions/* .
             
             # Comandos de Arch
             updpkgsums
