@@ -1,5 +1,5 @@
 # Maintainer: lautaro <tu-email>
-pkgname=linux-silvermont-bin
+pkgname=test
 pkgver=PKGVER
 pkgrel=1
 pkgdesc="Kernel TKG-PDS y Headers optimizados para Silvermont. Compilado usando Clang y Thin"

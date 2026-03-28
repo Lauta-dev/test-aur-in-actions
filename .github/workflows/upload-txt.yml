@@ -58,14 +58,41 @@ jobs:
           sed -i "s|PKGVER|1|" PKGBUILD
           sed -i "s|PKGURL|${{ env.pkgurl }}|" PKGBUILD
           sed -i "s|KERNEL_URL|$RELEASE_URL|" PKGBUILD
-          sudo -u user updpkgsums
-          sudo -u user makepkg --printsrcinfo > .SRCINFO
 
-      - name: debug
-        run: | 
-          ls -la
-          cat PKGBUILD
+      - name: config aur
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          # Configurar usuario de Git
+          git config --global user.name "Lautaro"
+          git config --global user.email "${{secrets.MAIL}}"
 
+      - name: workflow
+        run: |
+          # 1. Permisos iniciales (como root)
+          chown -R user:user .
+          
+          # 2. Todo el bloque de comandos ejecutado por 'user'
+          su - user <<'EOF'
+            # Ahora estamos dentro del contexto de 'user'
+            git clone ssh://aur@aur.archlinux.org/test.git
+            cp PKGBUILD test/
+            cd test
+            
+            # Comandos de Arch
+            updpkgsums
+            makepkg --printsrcinfo > .SRCINFO
+            
+            # Configurar Git y Subir
+            git config --global user.name "Lauta-dev"
+            git config --global user.email "${{secrets.MAIL}}"
+            git add PKGBUILD .SRCINFO
+            git commit -m "Actualización v$GITHUB_RUN_NUMBER"
+            git push origin master
+          EOF
+      
       - name: "Publicar Release"
         uses: softprops/action-gh-release@v2
         with:
