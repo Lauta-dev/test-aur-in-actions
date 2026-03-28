@@ -1,0 +1,80 @@
+name: TEST RELEASE TXT
+
+on:
+  workflow_dispatch:
+
+permissions: # 1. Esto es vital para que el Action pueda escribir la Release
+  contents: write
+
+env:
+  pkgver: 1.1
+  pkgurl: "https://github.com/"
+
+jobs:
+  make-txt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: "Generar archivo"
+        run: echo "Este es un test para el flujo del AUR" > test.txt
+
+      - name: "Subir archivos como Artifacts"
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-binaries # Nombre del "paquete" temporal
+          path: |
+            test.txt
+          retention-days: 1 # Se borra solo después de 1 día (ahorro de espacio)
+
+  up-to-aur:
+    needs: make-txt
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+      - name: 1 - Install git base-devel and sudo
+        run: pacman -Syu --noconfirm git base-devel sudo pacman-contrib
+
+      - name: Checkout linux-tkg
+        uses: actions/checkout@v4
+
+      - name: "Descargar Artifacts del Job anterior"
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-binaries
+          path: . # Los pone en esta carpeta
+
+      - name: 2 - Create user
+        run: |
+          useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+      - name: Set val in PKGBUILD
+        run: |
+          chown -R user:user .
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/test-aur-${{ github.run_number }}/test.txt"
+          sed -i "s/PKGVER/${{ github.run_number }}/" PKGBUILD
+          sed -i "s/PKGURL/${{ env.pkgurl }}/" PKGBUILD
+          sed -i "s|KERNEL_URL_VAL|$RELEASE_URL|" PKGBUILD
+          sudo -u user updpkgsums
+          sudo -u user makepkg --printsrcinfo > .SRCINFO
+
+      - name: debug
+        run: | 
+          ls -la
+          echo PKGBUILD
+
+      - name: "Publicar Release"
+        uses: softprops/action-gh-release@v2
+        with:
+          # 2. Los tags no deben llevar espacios, mejor usar guiones
+          tag_name: "test-aur-${{ github.run_number }}"
+          name: "Build #${{ github.run_number }}"
+          files: test.txt
+          # 3. Opcional: marcar como prerelease si solo es un test
+          prerelease: true 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
