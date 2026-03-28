@@ -73,11 +73,10 @@ jobs:
         run: |
           # 1. Permisos iniciales (como root)
           chown -R user:user .
-          # 1. Asegurar que el usuario tiene su home y permisos
-          useradd -m -s /bin/bash user || echo "User already exists"
-          echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-          chown -R user:user /github/workspace
-          
+
+          ls
+          pwd
+
           # 2. Todo el bloque de comandos ejecutado por 'user'
           su - user <<'EOF'
             # Ahora estamos dentro del contexto de 'user'
